@@ -1354,7 +1354,7 @@ class AbsoluteAlchemicalFactory(object):
 
         return alchemical_forces
 
-    def _get_sterics_energy_expressions(self, lambda_variable_suffixes, lambda_sigma=lambda_sigma):
+    def _get_sterics_energy_expressions(self, lambda_variable_suffixes, lambda_sigma=True):
         """Return the energy expressions for sterics.
 
         Parameters
