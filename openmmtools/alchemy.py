@@ -423,7 +423,8 @@ _ALCHEMICAL_REGION_ARGS = collections.OrderedDict([
     ('annihilate_sterics', False),
     ('softcore_alpha', 0.5), ('softcore_a', 1), ('softcore_b', 1), ('softcore_c', 6),
     ('softcore_beta', 0.0), ('softcore_d', 1), ('softcore_e', 1), ('softcore_f', 2),
-    ('name', None)
+    ('name', None),
+    ('alchemical_sigma',True)
 ])
 
 
@@ -1353,7 +1354,7 @@ class AbsoluteAlchemicalFactory(object):
 
         return alchemical_forces
 
-    def _get_sterics_energy_expressions(self, lambda_variable_suffixes):
+    def _get_sterics_energy_expressions(self, lambda_variable_suffixes, lambda_sigma=lambda_sigma):
         """Return the energy expressions for sterics.
 
         Parameters
@@ -1380,12 +1381,20 @@ class AbsoluteAlchemicalFactory(object):
                                 'sigma = 0.5*(sigma1 + sigma2);')  # Mixing rule for sigma.
 
         # Soft-core Lennard-Jones.
-        exceptions_sterics_energy_expression = ('U_sterics;'
+        if lambda_sigma == True:
+            exceptions_sterics_energy_expression = ('U_sterics;'
                                                 'U_sterics = (({0})^softcore_a)*4*epsilon*x*(x-1.0);'
                                                 'x = (sigma/reff_sterics)^6;'
                                                 # Effective softcore distance for sterics.
                                                 'reff_sterics = sigma*((softcore_alpha*(1.0-({0}))^softcore_b + (r/sigma)^softcore_c))^(1/softcore_c);')\
                                                 .format(lambda_variable_name)
+        else:
+            exceptions_sterics_energy_expression = ('U_sterics;'
+                                                'U_sterics = (({0})^softcore_a)*4*epsilon*x*(x-1.0);'
+                                                'x = (sigma/reff_sterics)^6;'
+                                                # Effective softcore distance for sterics.
+                                                'reff_sterics = sigma*((softcore_alpha*(1.0)^softcore_b + (r/sigma)^softcore_c))^(1/softcore_c);')
+            
         # Define energy expression for electrostatics.
         return sterics_mixing_rules, exceptions_sterics_energy_expression
 
@@ -1704,7 +1713,7 @@ class AbsoluteAlchemicalFactory(object):
             # --------------------------------------------------
 
             # Get steric energy expressions.
-            sterics_mixing_rules, exceptions_sterics_energy_expression = self._get_sterics_energy_expressions(lambda_var_suffixes)
+            sterics_mixing_rules, exceptions_sterics_energy_expression = self._get_sterics_energy_expressions(lambda_var_suffixes,lambda_sigma=alchemical_regions.lambda_sigma)
 
             # Define energy expression for sterics.
             sterics_energy_expression = exceptions_sterics_energy_expression + sterics_mixing_rules
