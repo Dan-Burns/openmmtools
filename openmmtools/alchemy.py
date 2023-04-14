@@ -424,7 +424,7 @@ _ALCHEMICAL_REGION_ARGS = collections.OrderedDict([
     ('softcore_alpha', 0.5), ('softcore_a', 1), ('softcore_b', 1), ('softcore_c', 6),
     ('softcore_beta', 0.0), ('softcore_d', 1), ('softcore_e', 1), ('softcore_f', 2),
     ('name', None),
-    ('alchemical_sigma',True)
+    ('lambda_sigma',True)
 ])
 
 
@@ -1393,7 +1393,8 @@ class AbsoluteAlchemicalFactory(object):
                                                 'U_sterics = (({0})^softcore_a)*4*epsilon*x*(x-1.0);'
                                                 'x = (sigma/reff_sterics)^6;'
                                                 # Effective softcore distance for sterics.
-                                                'reff_sterics = sigma*((softcore_alpha*(1.0)^softcore_b + (r/sigma)^softcore_c))^(1/softcore_c);')
+                                                'reff_sterics = sigma*((softcore_alpha*(1.0)^softcore_b + (r/sigma)^softcore_c))^(1/softcore_c);')\
+                                                .format(lambda_variable_name)
             
         # Define energy expression for electrostatics.
         return sterics_mixing_rules, exceptions_sterics_energy_expression
@@ -1713,8 +1714,13 @@ class AbsoluteAlchemicalFactory(object):
             # --------------------------------------------------
 
             # Get steric energy expressions.
-            sterics_mixing_rules, exceptions_sterics_energy_expression = self._get_sterics_energy_expressions(lambda_var_suffixes,lambda_sigma=alchemical_regions.lambda_sigma)
-
+            # Determine whether or not to apply lambda to LJ sigma term
+            for alchemical_region in alchemical_regions:
+                if alchemical_region.lambda_sigma:
+                    sterics_mixing_rules, exceptions_sterics_energy_expression = self._get_sterics_energy_expressions(lambda_var_suffixes)
+                else:
+                    sterics_mixing_rules, exceptions_sterics_energy_expression = self._get_sterics_energy_expressions(lambda_var_suffixes,lambda_sigma=False)
+     
             # Define energy expression for sterics.
             sterics_energy_expression = exceptions_sterics_energy_expression + sterics_mixing_rules
 
